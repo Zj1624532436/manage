@@ -22,6 +22,11 @@ spring:
         max-wait: 200s #连接池最大阻塞等待时间，默认没有限制
         max-idle: 8 #连接池中最大空闲连接
         min-idle: 0
+  security:
+    user:
+      name: admin
+      password: admin
+
 
 # mybatis-plus
 mybatis-plus:

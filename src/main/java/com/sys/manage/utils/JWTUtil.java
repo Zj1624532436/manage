@@ -67,7 +67,7 @@ public class JWTUtil {
             checkResult.setErrCode(JWTConstant.JWT_ERRCODE_NULL);
             return checkResult;
         }
-        Claims claims = null;
+        Claims claims;
         try {
             claims = parseJWT(jwtStr);
             checkResult.setSuccess(true);

@@ -1,9 +1,11 @@
 package com.sys.manage.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sys.manage.entity.SysUser;
 import com.sys.manage.service.SysUserService;
 import com.sys.manage.mapper.SysUserMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,6 +17,10 @@ import org.springframework.stereotype.Service;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
     implements SysUserService{
 
+    @Override
+    public SysUser getByUserName(String username) {
+        return getOne(new QueryWrapper<SysUser>().eq("username",username));
+    }
 }
 
 

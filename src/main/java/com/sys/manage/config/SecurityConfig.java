@@ -29,8 +29,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
+    @Autowired
+    private JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
+
     private static final String[] URL_WHITELIST = {
-            "/login","/logout","/captcha","/password","/image/**","/test/**","/love-time/**"
+            "/login","/logout","/captcha","/password","/img/**","/test/**","/love-time/**"
     };
 
     @Bean
@@ -53,8 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         //开启跨域 csrf攻击 关闭
         http.cors().and().csrf().disable()
         //登录登出配置
-        .formLogin().successHandler(loginSuccessHandler).failureHandler(loginFailureHandler)
-//                .and().logout().logoutSuccessHandler()
+        .formLogin().successHandler(loginSuccessHandler).failureHandler(loginFailureHandler).and().logout().logoutSuccessHandler(jwtLogoutSuccessHandler)
         //session禁用配置
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         //拦截规则配置

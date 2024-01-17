@@ -3,6 +3,9 @@ package com.sys.manage.service;
 import com.sys.manage.entity.SysMenu;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
 * @author 51430
 * @description 针对表【sys_menu】的数据库操作Service
@@ -10,4 +13,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface SysMenuService extends IService<SysMenu> {
 
+    List<SysMenu> buildTreeMenu(ArrayList<SysMenu> sysMenus);
 }

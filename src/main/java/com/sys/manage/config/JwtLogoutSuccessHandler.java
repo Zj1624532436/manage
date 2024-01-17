@@ -2,9 +2,8 @@ package com.sys.manage.config;
 
 import cn.hutool.json.JSONUtil;
 import com.sys.manage.common.R;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletException;
@@ -15,17 +14,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Component
-public class LoginFailureHandler implements AuthenticationFailureHandler {
-
+public class JwtLogoutSuccessHandler implements LogoutSuccessHandler{
     @Override
-    public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
+    public void onLogoutSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
         httpServletResponse.setContentType("application/json;charset=UTF-8");
         ServletOutputStream outputStream = httpServletResponse.getOutputStream();
-        String message = e.getMessage();
-        if(e instanceof BadCredentialsException){
-            message="用户名或密码错误";
-        }
-        R put = R.error(message);
+        R put = R.ok("登出成功");
         byte[] bytes = JSONUtil.toJsonStr(put).getBytes(StandardCharsets.UTF_8);
         outputStream.write(bytes);
         outputStream.flush();

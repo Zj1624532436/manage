@@ -6,7 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * 
@@ -66,6 +69,7 @@ public class SysUser implements Serializable {
     /**
      * 创建时间
      */
+
     @TableField(value = "create_time")
     private Date createTime;
 
@@ -81,6 +85,22 @@ public class SysUser implements Serializable {
     @TableField(value = "remark")
     private String remark;
 
+    /**
+     * 所属角色
+     */
+    @TableField(exist = false)
+    private String roles;
+
+    @TableField(exist = false)
+    private List<String> roleList;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    @TableField(exist = false)
+    private String oldPassword;
+
+    @TableField(exist = false)
+    private String newPassword;
+
 }

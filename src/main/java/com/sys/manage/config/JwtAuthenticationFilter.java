@@ -43,7 +43,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         String token = request.getHeader("token");
-        System.out.println("请求URI为："+request.getRequestURI());
         if(StringUtil.isEmpty(token)||new ArrayList<String>(Arrays.asList(URL_WHITELIST)).contains(request.getRequestURI())){
             chain.doFilter(request,response);
             return;
@@ -51,9 +50,9 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         CheckResult checkResult = JWTUtil.validateJWT(token);
         if(!checkResult.isSuccess()){
             switch (checkResult.getErrCode()){
-                case JWTConstant.JWT_ERRCODE_FAIL:throw new JwtException("Token不存在");
+                case JWTConstant.JWT_ERRCODE_FAIL:throw new JwtException("验证不通过");
                 case JWTConstant.JWT_ERRCODE_EXPIRE:throw new JwtException("Token过期");
-                case JWTConstant.JWT_ERRCODE_NULL:throw new JwtException("验证不通过");
+                case JWTConstant.JWT_ERRCODE_NULL:throw new JwtException("Token不存在");
             }
         }
         Claims claims = JWTUtil.parseJWT(token);

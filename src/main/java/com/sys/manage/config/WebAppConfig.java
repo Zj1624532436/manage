@@ -22,10 +22,12 @@ public class WebAppConfig implements WebMvcConfigurer {
                 .maxAge(3600);
     }
 
-//    @Override
-//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-//        registry.addResourceHandler("/image/userAvatar/**")
-//                .addResourceLocations("file:D:\\Study\\Codes\\xc_permission_mgt\\xc_back\\src\\main\\resources\\image\\userAvatar\\")
-//                .addResourceLocations("classpath:/image/userAvatar/");// 项目启动之后要确认被加载
-//    }
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/img/**","/love-time/**")
+                .addResourceLocations("file:D:/project/manage/src/main/resources/img/")
+                .addResourceLocations("file:D:/project/manage/src/main/resources/love-time/")
+                .addResourceLocations("classpath:/img/")
+                .addResourceLocations("classpath:/love-time/");// 项目启动之后要确认被加载
+    }
 }

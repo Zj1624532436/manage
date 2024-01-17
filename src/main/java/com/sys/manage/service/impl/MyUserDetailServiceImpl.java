@@ -5,14 +5,14 @@ import com.sys.manage.entity.SysUser;
 import com.sys.manage.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 @Service
 public class MyUserDetailServiceImpl implements UserDetailsService {
@@ -31,8 +31,9 @@ public class MyUserDetailServiceImpl implements UserDetailsService {
         return new User(sysUser.getUsername(),sysUser.getPassword(),getUserAuthority(sysUser.getId()));
     }
 
-    public Collection<? extends GrantedAuthority> getUserAuthority(Long id) {
-        return new ArrayList<>();
+    public List<GrantedAuthority> getUserAuthority(Long userId) {
+        String userAuthorityInfo = sysUserService.getUserAuthorityInfo(userId);
+        return AuthorityUtils.commaSeparatedStringToAuthorityList(userAuthorityInfo);
     }
 
 

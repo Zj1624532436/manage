@@ -13,4 +13,6 @@ public interface SysUserService extends IService<SysUser> {
     SysUser getByUserName(String username);
 
     String getUserAuthorityInfo(Long userId);
+
+    Boolean checkHasMax(SysUser sysUser);
 }

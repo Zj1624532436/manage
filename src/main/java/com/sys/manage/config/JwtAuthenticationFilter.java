@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     MyUserDetailServiceImpl myUserDetailService;
 
     private static final String[] URL_WHITELIST = {
-            "/login","/logout","/captcha","/password","/image/**","/test/**","/love-time/**"
+            "/login","/logout","/captcha","/password","/img/**","/test/**","/love-time/**"
     };
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {

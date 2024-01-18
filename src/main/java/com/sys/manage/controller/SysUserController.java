@@ -2,11 +2,14 @@ package com.sys.manage.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sys.manage.common.Constant;
 import com.sys.manage.common.PageBean;
 import com.sys.manage.common.R;
 import com.sys.manage.entity.SysRole;
 import com.sys.manage.entity.SysUser;
+import com.sys.manage.entity.SysUserRole;
 import com.sys.manage.service.SysRoleService;
+import com.sys.manage.service.SysUserRoleService;
 import com.sys.manage.service.SysUserService;
 import com.sys.manage.utils.DateUtil;
 import com.sys.manage.utils.StringUtil;
@@ -15,16 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @RestController
 @RequestMapping("sys/user")
@@ -38,22 +38,33 @@ public class SysUserController {
     @Autowired
     private SysRoleService sysRoleService;
 
+    @Autowired
+    private SysUserRoleService sysUserRoleService;
+
     @Value("${avatarImageFilePath}")
     private String avatarImageFilePath;
 
     @RequestMapping(value = "/save",method = RequestMethod.POST)
+    @Transactional
     @PreAuthorize("hasAuthority('system:user:add') || hasAuthority('system:user:edit')")
     public R saveUser(@RequestBody SysUser sysUser){
+        sysUser.setUpdateTime(new Date());
         if(sysUser.getId()==null||sysUser.getId()==-1){
-
+            sysUser.setCreateTime(new Date());
+            sysUser.setPassword(bCryptPasswordEncoder.encode(sysUser.getPassword()));
+            boolean is = sysUserService.save(sysUser);
+            if(!is) return R.error(500,"添加失败");
         }else {
-            sysUser.setUpdateTime(new Date());
+            if (sysUserService.checkHasMax(sysUser)) {
+                return R.error(Constant.NO_AUTHORITY);
+            }
             sysUserService.updateById(sysUser);
         }
         return R.ok();
     }
 
     @RequestMapping(value = "/updateUserPwd",method = RequestMethod.POST)
+    @Transactional
     @PreAuthorize("hasAuthority('system:user:edit')")
     public R updateUserPwd(@RequestBody SysUser sysUser){
         SysUser currentUser = sysUserService.getById(sysUser.getId());
@@ -92,6 +103,7 @@ public class SysUserController {
     }
 
     @PostMapping("/updateAvatar")
+    @Transactional
     @PreAuthorize("hasAuthority('system:user:edit')")
     public R updateAvatar(@RequestBody SysUser sysUser){
         SysUser currentUser = sysUserService.getById(sysUser.getId());
@@ -106,17 +118,21 @@ public class SysUserController {
         Page<SysUser> pageResult = sysUserService.page(new Page<>(pageBean.getPageNum(), pageBean.getPageSize()),new QueryWrapper<SysUser>().like(StringUtil.isNotEmpty(pageBean.getQuery()),"username",pageBean.getQuery()));
         List<SysUser> userList = pageResult.getRecords();
         HashMap<String, Object> resultMap = new HashMap<>();
-        userList.forEach(user->user.setRoleList(sysRoleService.list(new QueryWrapper<SysRole>().inSql("id", "select role_id from sys_user_role where user_id = " + user.getId())).stream().map(SysRole::getName).collect(Collectors.toList())));
+        userList.forEach(user->user.setRoleList(sysRoleService.list(new QueryWrapper<SysRole>().inSql("id", "select role_id from sys_user_role where user_id = " + user.getId()))));
         resultMap.put("userList",userList);
         resultMap.put("total",pageResult.getTotal());
         return R.ok(resultMap);
     }
 
     @GetMapping("/updateStatus/{id}/status/{status}")
+    @Transactional
     @PreAuthorize("hasAuthority('system:user:edit')")
     public R updateStatus(@PathVariable("id") Integer id,
                                    @PathVariable("status") Character status){
         SysUser sysUser = sysUserService.getById(id.longValue());
+        if (sysUserService.checkHasMax(sysUser)) {
+            return R.error(Constant.NO_AUTHORITY);
+        }
         sysUser.setUpdateTime(new Date());
         sysUser.setStatus(status.toString());
         sysUserService.updateById(sysUser);
@@ -141,14 +157,32 @@ public class SysUserController {
         return R.ok();
     }
 
-    @PostMapping("/add")
-    @PreAuthorize("hasAuthority('system:user:add') || hasAuthority('system:user:edit')")
-    public R insert(@RequestBody SysUser sysUser){
-        sysUser.setUpdateTime(new Date());
-        sysUser.setCreateTime(new Date());
-        sysUser.setPassword(bCryptPasswordEncoder.encode(sysUser.getPassword()));
-        boolean is = sysUserService.save(sysUser);
-        if(!is) return R.error(500,"添加失败");
+    @Transactional
+    @PostMapping("/delete")
+    @PreAuthorize("hasAuthority('system:user:delete')")
+    public R delete(@RequestBody Long[] ids){
+        for (Long id : ids) {
+            if (id==1L) {
+                return R.error(Constant.NO_AUTHORITY);
+            }
+        }
+        sysUserService.removeByIds(Arrays.asList(ids));
+        sysUserRoleService.remove(new QueryWrapper<SysUserRole>().in("user_id", (Object) ids));
         return R.ok();
     }
+
+    @GetMapping("/resetPassword/{id}")
+    @Transactional
+    @PreAuthorize("hasAuthority('system:user:edit')")
+    public R resetPassword(@PathVariable(value = "id")Integer id){
+        SysUser sysUser = sysUserService.getById(id.longValue());
+        if (sysUserService.checkHasMax(sysUser)) {
+            return R.error(Constant.NO_AUTHORITY);
+        }
+        sysUser.setPassword(bCryptPasswordEncoder.encode(Constant.DEFAULT_PASSWORD));
+        sysUser.setUpdateTime(new Date());
+        sysUserService.updateById(sysUser);
+        return R.ok();
+    }
+
 }

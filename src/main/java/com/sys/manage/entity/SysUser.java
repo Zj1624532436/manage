@@ -92,7 +92,7 @@ public class SysUser implements Serializable {
     private String roles;
 
     @TableField(exist = false)
-    private List<String> roleList;
+    private List<SysRole> roleList;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

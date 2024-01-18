@@ -17,7 +17,6 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
   redis: # redis
     port: 6379
-    password: root
     host: 127.0.0.1
     connect-timeout: 10s
     lettuce:

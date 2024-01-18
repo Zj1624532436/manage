@@ -39,7 +39,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
 
     @Override
     public String getUserAuthorityInfo(Long userId){
-        StringBuffer authority = new StringBuffer();
+        StringBuilder authority = new StringBuilder();
         List<SysRole> roleList = sysRoleMapper.selectList(new QueryWrapper<SysRole>().inSql("id", "select role_id from sys_user_role where user_id = " + userId));
         if (!roleList.isEmpty()) {
             String roleCodeStrs = roleList.stream().map(r -> "ROLE_" + r.getCode()).collect(Collectors.joining(","));
@@ -57,10 +57,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         }
         if(!menuCodeSet.isEmpty()){
             authority.append(",");
-            String menuCodeStrs = menuCodeSet.stream().collect(Collectors.joining(","));
+            String menuCodeStrs = String.join(",", menuCodeSet);
             authority.append(menuCodeStrs);
         }
         return authority.toString();
+    }
+
+    @Override
+    public Boolean checkHasMax(SysUser sysUser){
+        return sysUser.getId() == 1L;
     }
 }
 

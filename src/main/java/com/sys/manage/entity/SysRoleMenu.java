@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -13,6 +15,7 @@ import lombok.Data;
  */
 @TableName(value ="sys_role_menu")
 @Data
+@Builder
 public class SysRoleMenu implements Serializable {
     /**
      * 角色菜单主键ID

@@ -39,7 +39,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private CaptchaFilter captchaFilter;
 
     private static final String[] URL_WHITELIST = {
-            "/login","/logout","/captcha","/password","/img/**","/test/**","/love-time/**","/api/auth/login"
+            "/login","/logout","/captcha","/password","/img/**","/test/**","/love-time/**","/api/auth/login","/C/**"
     };
 
     @Bean
@@ -58,7 +58,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-
     protected void configure(HttpSecurity http) throws Exception {
         //开启跨域 csrf攻击 关闭
         http.cors().and().csrf().disable()
@@ -73,6 +72,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
         //自定义过滤器配置
                 .and().addFilter(jwtAuthenticationFilter()).addFilterAfter(captchaFilter, LogoutFilter.class);
+        http.headers().frameOptions().disable();
     }
 
 }

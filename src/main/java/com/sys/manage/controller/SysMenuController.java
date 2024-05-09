@@ -30,7 +30,7 @@ public class SysMenuController {
     private SysRoleMenuService sysRoleMenuService;
 
     @GetMapping("/treeList")
-    @PreAuthorize("hasAuthority('system:menu:query')")
+    @PreAuthorize("hasAuthority('system:role:menu')")
     public R treeList(){
         List<SysMenu> menuList = sysMenuService.list();
         List<SysMenu> menuListResult = sysMenuService.buildTreeMenu((ArrayList<SysMenu>) menuList);
@@ -57,7 +57,7 @@ public class SysMenuController {
     public R updateMenus(@PathVariable("id")Long roleId,
                                   @RequestBody Long[] menuIds){
 
-        sysRoleMenuService.removeById(roleId);
+        sysRoleMenuService.remove(new QueryWrapper<SysRoleMenu>().eq("role_id",roleId));
         List<SysRoleMenu> roleMenuList = Arrays.stream(menuIds)
                 .map(menuId ->
                         SysRoleMenu.builder()

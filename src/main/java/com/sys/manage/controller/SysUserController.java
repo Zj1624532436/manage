@@ -2,23 +2,31 @@ package com.sys.manage.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sys.manage.common.Constant;
 import com.sys.manage.common.PageBean;
 import com.sys.manage.common.R;
+import com.sys.manage.entity.Address;
 import com.sys.manage.entity.SysRole;
 import com.sys.manage.entity.SysUser;
 import com.sys.manage.entity.SysUserRole;
+import com.sys.manage.service.AddressService;
 import com.sys.manage.service.SysRoleService;
 import com.sys.manage.service.SysUserRoleService;
 import com.sys.manage.service.SysUserService;
 import com.sys.manage.utils.DateUtil;
 import com.sys.manage.utils.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +35,7 @@ import java.io.IOException;
 import java.util.*;
 
 @RestController
+@Slf4j
 @RequestMapping("sys/user")
 public class SysUserController {
     @Autowired
@@ -41,8 +50,18 @@ public class SysUserController {
     @Autowired
     private SysUserRoleService sysUserRoleService;
 
-    @Value("${avatarImageFilePath}")
-    private String avatarImageFilePath;
+
+    @Value("${videoFilePath}")
+    private String videoFilePath;
+
+    @Autowired
+    private AddressService addressService;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @RequestMapping(value = "/save",method = RequestMethod.POST)
     @Transactional
@@ -78,8 +97,7 @@ public class SysUserController {
         }
     }
 
-    @PostMapping("/uploadImage")
-    @PreAuthorize("hasAuthority('system:user:edit')")
+    @PostMapping(value = "/uploadImage")
     public Map<String,Object> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
         Map<String, Object> result = new HashMap<>();
 
@@ -91,12 +109,12 @@ public class SysUserController {
                 suffixName = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
             String newFileName = DateUtil.currentTimeStr() + suffixName;
-            FileUtils.copyInputStreamToFile(file.getInputStream(), new File(avatarImageFilePath+ newFileName));
+            FileUtils.copyInputStreamToFile(file.getInputStream(), new File(videoFilePath+File.separator+"img"+File.separator+ newFileName));
             result.put("status", 200);
             result.put("msg", "上传成功！");
             Map<String, Object> dataMap = new HashMap<>();
             dataMap.put("title", newFileName);
-            dataMap.put("src", "img/" + newFileName);
+            dataMap.put("src", "video/img/" + newFileName);
             result.put("data", dataMap);
         }
         return result;
@@ -104,7 +122,6 @@ public class SysUserController {
 
     @PostMapping("/updateAvatar")
     @Transactional
-    @PreAuthorize("hasAuthority('system:user:edit')")
     public R updateAvatar(@RequestBody SysUser sysUser){
         SysUser currentUser = sysUserService.getById(sysUser.getId());
         currentUser.setAvatar(sysUser.getAvatar());
@@ -173,7 +190,7 @@ public class SysUserController {
 
     @GetMapping("/resetPassword/{id}")
     @Transactional
-    @PreAuthorize("hasAuthority('system:user:edit')")
+    @PreAuthorize("hasAuthority('system:role:menu')")
     public R resetPassword(@PathVariable(value = "id")Integer id){
         SysUser sysUser = sysUserService.getById(id.longValue());
         if (sysUserService.checkHasMax(sysUser)) {
@@ -185,4 +202,83 @@ public class SysUserController {
         return R.ok();
     }
 
+    @GetMapping("list/address")
+    public R getAddress(){
+        List<Address> list = addressService.list();
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("address",list);
+        return R.ok(resultMap);
+
+    }
+
+
+    @GetMapping("start")
+    public R start() throws InterruptedException, IOException {
+            // 创建Process对象
+            Process process = Runtime.getRuntime().exec("C:\\Users\\51430\\Desktop\\Clash\\Clash for Windows.exe");
+
+            // 等待程序执行完成
+            int exitCode = process.waitFor();
+
+            // 检查程序是否成功执行
+            if (exitCode == 0) {
+                System.out.println("程序成功执行");
+            } else {
+                System.out.println("程序执行失败");
+            }
+        return R.ok();
+
+    }
+
+    @GetMapping("getFileList")
+    public R getFileList(@RequestParam(required = false) String url){
+        boolean isSpineFile = false;
+        String path = videoFilePath;
+        if(StringUtil.isNotEmpty(url)){
+            path = videoFilePath+File.separator+url;
+            isSpineFile = url.contains("spine");
+        }
+        File resource = new File(path);
+        File[] files = resource.listFiles();
+        if (files != null) {
+            Arrays.sort(files, new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    if (o1.isDirectory() && o2.isFile())
+                        return -1;
+                    if (o1.isFile() && o2.isDirectory())
+                        return 1;
+                    if(o1.getName().length() > o2.getName().length()){
+                        return 1;
+                    }else if(o1.getName().length() < o2.getName().length()){
+                        return -1;
+                    }
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+        }else {
+            return R.error(url.substring(url.lastIndexOf(".")+1));
+        }
+        Map<String, Object> result = new HashMap<>();
+        ArrayList<String> resultList = new ArrayList<>();
+        ArrayList<String> fileNames = new ArrayList<>();
+        for(File file: Objects.requireNonNull(files)){
+            String name = file.getName();
+            if(StringUtil.isNotEmpty(url)){
+                if(isSpineFile){
+                    if(name.endsWith(".skel")){
+                        resultList.add(url+File.separator+name);
+                        fileNames.add(name.substring(0,name.lastIndexOf(".")));
+                    }
+                }else {
+                    resultList.add(url+File.separator+name);
+                }
+            }else {
+                resultList.add(name);
+            }
+        }
+        result.put("fileName",fileNames);
+        result.put("list",resultList);
+        return R.ok(result);
+    }
 }

@@ -24,8 +24,11 @@ public class LoggerAspect {
     public Object myLogger(ProceedingJoinPoint pjp) throws Throwable {
         String className = Objects.requireNonNull(pjp.getTarget()).getClass().toString();
         String methodName = pjp.getSignature().getName();
-        Object[] args = pjp.getArgs();
-        log.info("调用接口为"+className+":"+methodName+":"+new ObjectMapper().writeValueAsString(args));
+        String name = pjp.getSignature().getName();
+        if(!"uploadImage".equals(name)){
+            Object args = pjp.getArgs();
+            log.info("调用接口为"+className+":"+methodName+":"+new ObjectMapper().writeValueAsString(args));
+        }
         Object obj = pjp.proceed();
         log.info("返回结果为"+":"+new ObjectMapper().writeValueAsString(obj));
         return obj;

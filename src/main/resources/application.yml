@@ -42,4 +42,4 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mapper/*.xml
 
-avatarImageFilePath: D:/project/manage/src/main/resources/img/
+videoFilePath: E:/C/

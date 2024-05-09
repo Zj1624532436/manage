@@ -49,7 +49,7 @@ public class JWTUtil {
      * @return
      */
     public static String createJWT(String username) {
-        return createJWT(username, username, 60 * 60 * 1000); // ttlMillis表示的是一小时
+        return createJWT(username, username, 600 * 60 * 1000); // ttlMillis表示的是一小时
     }
 
     /**

@@ -91,7 +91,6 @@ public class SysRoleController {
         sysRole.setUpdateTime(new Date());
         sysRoleService.save(sysRole);
         return R.ok();
-
     }
 
 
@@ -108,6 +107,11 @@ public class SysRoleController {
     @PreAuthorize("hasAuthority('system:role:delete')")
     @PostMapping("/delete")
     public R delete(@RequestBody Long[] ids){
+        for (Long l :ids){
+            if (l == 1L) {
+                return R.error(Constant.NO_AUTHORITY);
+            }
+        }
         sysRoleService.removeByIds(Arrays.asList(ids));
         sysUserRoleService.remove(new QueryWrapper<SysUserRole>().in("role_id", (Object) ids));
         sysRoleMenuService.remove(new QueryWrapper<SysRoleMenu>().in("role_id", (Object) ids));

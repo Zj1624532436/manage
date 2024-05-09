@@ -1,0 +1,7 @@
+/* global.css */
+.bak{
+    height: 100%;
+    background-image: url("@/assets/imgs/background1.jpg");
+    background-size: cover;
+    background-position: center;
+}

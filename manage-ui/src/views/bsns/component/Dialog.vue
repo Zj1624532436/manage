@@ -1,0 +1,146 @@
+<template>
+    <el-dialog
+        :title="dialogTitle"
+        width="30%"
+        @close="handleClose"
+    >
+
+        <el-form
+            ref="formRef"
+            :model="form"
+            :rules="rules"
+            label-width="100px"
+        >
+            <el-form-item label="公司名" prop="companyName">
+                <el-input v-model="form.companyName" />
+            </el-form-item>
+
+            <el-form-item label="招聘HR" prop="hrName">
+                <el-input v-model="form.hrName" />
+            </el-form-item>
+
+
+            <el-form-item label="备注" prop="remark">
+                <el-input v-model="form.remark" type="textarea" :rows="4"/>
+            </el-form-item>
+
+
+        </el-form>
+        <template #footer>
+      <span class="dialog-footer">
+        <el-button type="primary" @click="handleConfirm">确认</el-button>
+        <el-button  @click="handleClose">取消</el-button>
+      </span>
+        </template>
+    </el-dialog>
+</template>
+
+<script setup>
+import {defineEmits, defineProps, ref, watch} from "vue";
+import requestUtil from "@/utils/request.js";
+import { ElMessage } from 'element-plus'
+
+const props=defineProps(
+    {
+        id:{
+            type:Number,
+            default:-1,
+            required:true
+        },
+        dialogTitle:{
+            type:String,
+            default:'',
+            required:true
+        },
+        dialogVisible:{
+            type:Boolean,
+            default:false,
+            required:true
+        }
+    }
+)
+
+
+const form=ref({
+    id:-1,
+    companyName:"",
+    hrName:"",
+    remark:""
+})
+
+
+const rules=ref({
+    companyName:[
+        { required: true, message: '请输入公司名'},
+    ],
+    hrName:[
+        { required: true, message: '请输入HR名'},
+    ],
+    code: [{ required: true, message: "权限字符不能为空", trigger: "blur" }, { type: "code", message: "请输入正确的权限字符", trigger: ["blur", "change"] }],
+})
+
+const formRef=ref(null)
+
+const initFormData=async(id)=>{
+    const res=await requestUtil.get("sys/department/"+id);
+    if(res.data.code===200){
+      form.value=res.data.sysDepartmentList;
+    }
+}
+
+watch(
+    ()=>props.dialogVisible,
+    ()=>{
+        let id=props.id;
+        if(id!==-1){
+            initFormData(id)
+        }else{
+            form.value={
+                id:-1,
+                companyName:"",
+                hrName:"",
+                remark:""
+            }
+
+        }
+    }
+)
+
+/*创建一个事件名为update:modelValue的initRoleList事件*/
+const emits=defineEmits(['update:modelValue','initRoleList'])
+
+const handleClose=()=>{
+    emits('update:modelValue',false)
+}
+
+
+const handleConfirm=()=>{
+    formRef.value.validate(async(valid)=>{
+        if(valid){
+            let result;
+            if(props.id===-1)
+                result=await requestUtil.post("sys/department/add",form.value);
+            else
+                result=await requestUtil.post("sys/department/save",form.value)
+            let data=result.data;
+            if(data.code===200){
+                ElMessage.success("操作成功")
+                formRef.value.resetFields();
+                emits("initRoleList")
+                handleClose();
+            }else{
+                formRef.value.resetFields();
+                emits("initRoleList")
+                handleClose();
+                ElMessage.error(data.msg);
+            }
+        }
+    })
+}
+
+
+</script>
+
+<style lang="scss" scoped>
+
+</style>
